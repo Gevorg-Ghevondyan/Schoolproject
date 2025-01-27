@@ -29,3 +29,19 @@ ehthumbs.db
 *.userosscache
 *.sln.docstates
 
+# ASP.NET Core web config files
+appsettings.json
+appsettings.Development.json
+
+# Ignore Entity Framework migrations
+Migrations/
+
+# Ignore Visual Studio for Mac files
+.vscode/
+
+# Ignore .NET Core global tools
+global.json
+
+# Ignore packages
+*.nupkg
+
