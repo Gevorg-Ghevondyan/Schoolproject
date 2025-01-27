@@ -57,10 +57,18 @@ public class ClassController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteClass(int id)
     {
-        var success = await _classService.DeleteClassAsync(id);
-        if (!success)
-            return NotFound();
+        try
+        {
+            var success = await _classService.DeleteClassAsync(id);
+            if (!success)
+                return NotFound();
 
-        return NoContent();
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { Message = ex.Message });
+        }
     }
+
 }

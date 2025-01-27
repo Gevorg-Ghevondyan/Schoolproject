@@ -48,16 +48,22 @@ public class ClassService : IClassService
 
     public async Task<bool> DeleteClassAsync(int id)
     {
-        var classToDelete = await _context.Classes.FindAsync(id);
+        var classToDelete = await _context.Classes.Include(c => c.Students).FirstOrDefaultAsync(c => c.Id == id);
         if (classToDelete == null)
         {
             return false;
+        }
+
+        if (classToDelete.Students.Any())
+        {
+            throw new InvalidOperationException("Cannot delete a class that has students.");
         }
 
         _context.Classes.Remove(classToDelete);
         await _context.SaveChangesAsync();
         return true;
     }
+
 
     public async Task<List<Class>> GetAllClassesAsync()
     {
