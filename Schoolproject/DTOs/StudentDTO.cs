@@ -1,6 +1,14 @@
-﻿public class StudentDTO
+﻿using System.ComponentModel.DataAnnotations;
+
+public class StudentDTO
 {
-    public required string Name { get; set; }
+    [Required]
+    [StringLength(20)]
+    public string Name { get; set; }
+
+    [Required]
+    [EmailAddress]
     public required string Email { get; set; }
-    public int? ClassId { get; set; }  // Make this nullable
+
+    public int? ClassId { get; set; }
 }

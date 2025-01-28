@@ -1,8 +1,8 @@
 ﻿public interface ITeacherService
 {
-    Task<Teacher> CreateTeacherAsync(TeacherDTO teacherDTO);
-    Task<Teacher> GetTeacherAsync(int id);
+    Task<TeacherDTO> CreateTeacherAsync(TeacherDTO teacherDTO);
     Task<List<Teacher>> GetAllTeachersAsync();
-    Task<Teacher> UpdateTeacherAsync(int id, TeacherDTO teacherDTO);
+    Task<Teacher> GetTeacherAsync(int id);
+    Task<TeacherDTO> UpdateTeacherAsync(int id, TeacherDTO teacherDTO);
     Task<bool> DeleteTeacherAsync(int id);
 }

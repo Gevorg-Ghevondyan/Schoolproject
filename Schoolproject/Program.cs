@@ -8,9 +8,9 @@ builder.Services.AddDbContext<SchoolContext>(options =>
         sqlOptions => sqlOptions.EnableRetryOnFailure()));
 
 builder.Services.AddScoped<IClassService, ClassService>();
-builder.Services.AddScoped<IStudentService, StudentService>();
-builder.Services.AddScoped<ISubjectService, SubjectService>();
-builder.Services.AddScoped<ITeacherService, TeacherService>();
+//builder.Services.AddScoped<IStudentService, StudentService>();
+//builder.Services.AddScoped<ISubjectService, SubjectService>();
+//builder.Services.AddScoped<ITeacherService, TeacherService>();
 
 builder.Services.AddControllers();
 
