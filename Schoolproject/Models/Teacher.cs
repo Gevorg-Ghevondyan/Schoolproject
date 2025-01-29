@@ -1,21 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
-
-public class Teacher
+﻿public class Teacher
 {
     public int Id { get; set; }
-
-    [Required]
-    [MaxLength(20)]
     public string Name { get; set; }
+    public string Email { get; set; }
 
-    // Many-to-many relationship with Subjects
-    public List<int> SubjectIds { get; set; }
+    public List<int>? SubjectIds { get; set; } = new List<int>();
+    public List<int>? ClassIds { get; set; } = new List<int>();
 
-    // Navigation property for the many-to-many relationship with Classes
-    [JsonIgnore]
-    public List<Class> Classes { get; set; }
-
-    [JsonIgnore]
-    public List<Subject> Subjects { get; set; }
+    public List<Subject> Subjects { get; set; } = new List<Subject>();
+    public List<Class> Classes { get; set; } = new List<Class>();
 }

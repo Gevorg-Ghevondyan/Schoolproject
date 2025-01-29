@@ -1,125 +1,96 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
+using Schoolproject.DTOs;
 
-[Route("api/[controller]")]
-[ApiController]
-public class ClassController : ControllerBase
+namespace Schoolproject.Controllers
 {
-    private readonly IClassService _classService;
-
-    public ClassController(IClassService classService)
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ClassesController : ControllerBase
     {
-        _classService = classService;
-    }
+        private readonly IClassService _classService;
 
-    [HttpPost]
-    public async Task<IActionResult> CreateClass([FromBody] ClassDTO classDTO)
-    {
-        if (classDTO == null || string.IsNullOrEmpty(classDTO.Name))
+        public ClassesController(IClassService classService)
         {
-            return BadRequest("Invalid class data.");
-        }
-        if (classDTO.Name.Length > 10)
-        {
-            return BadRequest(new { Message = "The Name field must be a string with a maximum length of 10 characters." });
+            _classService = classService;
         }
 
-        try
+        [HttpPost]
+        public async Task<ActionResult<ClassResponseDto>> CreateClass(ClassRequestDTO classDto)
         {
-            var createdClass = await _classService.CreateClassAsync(classDTO);
-            return CreatedAtAction(nameof(GetClass), new { id = createdClass.Id }, new
+            try
             {
-                Id = createdClass.Id,
-                Name = createdClass.Name
-            });
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { Message = ex.Message });
-        }
-    }
-
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetClass(int id)
-    {
-        var classEntity = await _classService.GetClassAsync(id);
-
-        if (classEntity == null)
-        {
-            return NotFound($"Class with ID {id} not found.");
+                var classEntity = await _classService.CreateAsync(classDto);
+                return CreatedAtAction(nameof(GetClassById), new { id = classEntity.Id }, classEntity);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
-        var classDto = new ClassDTO
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<ClassResponseDto>>> GetAllClasses()
         {
-            Name = classEntity.Name
-        };
-
-        var classWithIds = new
-        {
-            classEntity.Id,
-            classEntity.Name,
-            StudentIds = classEntity.StudentIds,
-            TeacherIds = classEntity.TeacherIds,
-            SubjectIds = classEntity.SubjectIds
-        };
-
-        return Ok(classWithIds);
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> GetAllClasses()
-    {
-        var classes = await _classService.GetAllClassesAsync();
-
-        var classDtos = classes.Select(c => new
-        {
-            c.Id,
-            c.Name,
-            TeacherIds=c.TeacherIds,
-            SubjectIds=c.SubjectIds,
-            StudentIds=c.StudentIds
-        }).ToList();
-
-        return Ok(classDtos);
-    }
-
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateClass(int id, [FromBody] ClassDTO classDTO)
-    {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
-        try
-        {
-            var updatedClass = await _classService.UpdateClassAsync(id, classDTO);
-            return Ok(updatedClass);
+            var classes = await _classService.GetAllAsync();
+            return Ok(classes);
         }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { Message = ex.Message });
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(new { Message = ex.Message });
-        }
-    }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteClass(int id)
-    {
-        try
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetClassById(int id)
         {
-            var success = await _classService.DeleteClassAsync(id);
-            return NoContent();
+            try
+            {
+                var classDto = await _classService.GetByIdAsync(id);
+                return Ok(classDto);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred.", details = ex.Message });
+            }
         }
-        catch (KeyNotFoundException ex)
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateClass(int id, ClassRequestDTO classDto)
         {
-            return NotFound(ex.Message);
+            try
+            {
+                var updatedClass = await _classService.UpdateAsync(id, classDto);
+
+                return Ok(updatedClass);
+            }
+            catch (ArgumentException ex)
+            {
+
+                if (ex.Message.Contains("not found"))
+                {
+                    return NotFound(new { message = ex.Message });
+                }
+
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An unexpected error occurred.", details = ex.Message });
+            }
         }
-        catch (InvalidOperationException ex)
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteClass(int id)
         {
-            return Conflict(ex.Message);
+            var isDeleted = await _classService.DeleteAsync(id);
+
+            if (isDeleted)
+            {
+                return NoContent();
+            }
+            else
+            {
+                return NotFound(new { message = "Class with the provided ID not found." });
+            }
         }
     }
 }

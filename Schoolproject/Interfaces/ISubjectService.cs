@@ -1,8 +1,10 @@
-﻿public interface ISubjectService
+﻿using Schoolproject.DTOs;
+
+public interface ISubjectService
 {
-    Task<SubjectDTO> CreateSubjectAsync(SubjectDTO subjectDTO);
-    Task<List<Subject>> GetAllSubjectsAsync();
-    Task<Subject> GetSubjectAsync(int id);
-    Task<SubjectDTO> UpdateSubjectAsync(int id, SubjectDTO subjectDTO);
-    Task<bool> DeleteSubjectAsync(int id);
+    Task<SubjectResponseDto> CreateAsync(SubjectRequestDTO subjectDto);
+    Task<SubjectResponseDto> GetByIdAsync(int id);
+    Task<IEnumerable<SubjectResponseDto>> GetAllAsync();
+    Task<SubjectResponseDto> UpdateAsync(int id, SubjectRequestDTO subjectDto);
+    Task<bool> DeleteAsync(int id);
 }

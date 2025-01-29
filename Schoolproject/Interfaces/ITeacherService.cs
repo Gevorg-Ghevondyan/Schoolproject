@@ -1,8 +1,10 @@
-﻿public interface ITeacherService
+﻿using Schoolproject.DTOs;
+
+public interface ITeacherService
 {
-    Task<TeacherDTO> CreateTeacherAsync(TeacherDTO teacherDTO);
-    Task<List<Teacher>> GetAllTeachersAsync();
-    Task<Teacher> GetTeacherAsync(int id);
-    Task<TeacherDTO> UpdateTeacherAsync(int id, TeacherDTO teacherDTO);
-    Task<bool> DeleteTeacherAsync(int id);
+    Task<TeacherResponseDto> CreateAsync(TeacherRequestDTO teacherDto);
+    Task<TeacherResponseDto> GetByIdAsync(int id);
+    Task<IEnumerable<TeacherResponseDto>> GetAllAsync();
+    Task<TeacherResponseDto> UpdateAsync(int id, TeacherRequestDTO teacherDto);
+    Task<bool> DeleteAsync(int id);
 }

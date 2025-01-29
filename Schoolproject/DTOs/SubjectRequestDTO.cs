@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-public class SubjectDTO
+public class SubjectRequestDTO
 {
     [Required]
-    [StringLength(20)]
     public string Name { get; set; }
-    public List<int> TeacherIds { get; set; }
+
+    public List<int>? TeacherIds { get; set; }
 }

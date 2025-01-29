@@ -1,8 +1,9 @@
-﻿public interface IStudentService
+﻿using Schoolproject.DTOs;
+public interface IStudentService
 {
-    Task<StudentDTO> CreateStudentAsync(StudentDTO studentDTO);
-    Task<Student> GetStudentAsync(int id);
-    Task<List<Student>> GetAllStudentsAsync();
-    Task<StudentDTO> UpdateStudentAsync(int id, StudentDTO studentDTO);
-    Task<bool> DeleteStudentAsync(int id);
+    Task<StudentResponseDto> CreateAsync(StudentRequestDTO studentDto);
+    Task<StudentResponseDto> GetByIdAsync(int id);
+    Task<IEnumerable<StudentResponseDto>> GetAllAsync();
+    Task<StudentResponseDto> UpdateAsync(int id, StudentRequestDTO studentDto);
+    Task<bool> DeleteAsync(int id);
 }
