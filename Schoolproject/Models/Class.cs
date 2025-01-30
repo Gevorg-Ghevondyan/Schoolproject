@@ -5,7 +5,7 @@
 
     public List<Subject> Subjects { get; set; } = new List<Subject>();
     public List<Teacher> Teachers { get; set; } = new List<Teacher>();
-    public List<Student> Students { get; set; } = new List<Student>();
+    public List<Student> Students { get; set; }
 
     public List<int> TeacherIds { get; set; }
     public List<int> StudentIds { get; set; }

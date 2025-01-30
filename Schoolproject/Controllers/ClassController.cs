@@ -81,16 +81,24 @@ namespace Schoolproject.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteClass(int id)
         {
-            var isDeleted = await _classService.DeleteAsync(id);
-
-            if (isDeleted)
+            try
             {
-                return NoContent();
+                await _classService.DeleteAsync(id);
+                return Ok(new { message = "Class deleted successfully." });
             }
-            else
+            catch (KeyNotFoundException ex)
             {
-                return NotFound(new { message = "Class with the provided ID not found." });
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An unexpected error occurred.", details = ex.Message });
             }
         }
+
     }
 }

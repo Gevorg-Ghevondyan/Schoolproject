@@ -93,18 +93,19 @@ namespace Schoolproject.Services
         }
         public async Task<IEnumerable<ClassResponseDto>> GetAllAsync()
         {
-            var classes = await _context.Classes
-                                         .Select(c => new ClassResponseDto
-                                         {
-                                             Id = c.Id,
-                                             Name = c.Name,
-                                             SubjectIds = c.SubjectIds ?? new List<int>(),  // Ensure SubjectIds is not null
-                                             TeacherIds = c.TeacherIds ?? new List<int>(),  // Ensure TeacherIds is not null
-                                             StudentIds = c.StudentIds ?? new List<int>()   // Ensure StudentIds is not null
-                                         })
-                                         .ToListAsync();
+            var classEntities = await _context.Classes
+                .Include(c => c.Students)
+                .Select(c => new ClassResponseDto
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    StudentIds = c.Students.Select(s => s.Id).ToList(),
+                    SubjectIds = c.Subjects.Select(s => s.Id).ToList(),
+                    TeacherIds = c.Teachers.Select(t => t.Id).ToList()
+                })
+                .ToListAsync();
 
-            return classes;
+            return classEntities;
         }
         public async Task<ClassResponseDto> GetByIdAsync(int id)
         {
@@ -139,19 +140,16 @@ namespace Schoolproject.Services
                 throw new ArgumentException($"A class with the name '{classDto.Name}' already exists.");
             }
 
-            // Teacher ID validation
             if (classDto.TeacherIds != null && classDto.TeacherIds.Distinct().Count() != classDto.TeacherIds.Count())
             {
                 throw new ArgumentException("Teacher IDs cannot contain duplicates.");
             }
 
-            // Student ID validation
             if (classDto.StudentIds != null && classDto.StudentIds.Distinct().Count() != classDto.StudentIds.Count())
             {
                 throw new ArgumentException("Student IDs cannot contain duplicates.");
             }
 
-            // Subject ID validation
             if (classDto.SubjectIds != null && classDto.SubjectIds.Any())
             {
                 var invalidSubjectIds = classDto.SubjectIds
@@ -164,7 +162,6 @@ namespace Schoolproject.Services
                 }
             }
 
-            // Teacher ID existence check
             if (classDto.TeacherIds != null && classDto.TeacherIds.Any())
             {
                 var invalidTeacherIds = classDto.TeacherIds
@@ -177,7 +174,6 @@ namespace Schoolproject.Services
                 }
             }
 
-            // Student ID existence check
             if (classDto.StudentIds != null && classDto.StudentIds.Any())
             {
                 var invalidStudentIds = classDto.StudentIds
@@ -189,7 +185,6 @@ namespace Schoolproject.Services
                     throw new ArgumentException($"The following Student IDs are invalid: {string.Join(", ", invalidStudentIds)}");
                 }
 
-                // Check if any of the students are already assigned to another class
                 var studentsAlreadyInOtherClass = await _context.Classes
                     .Where(c => c.StudentIds.Any(studentId => classDto.StudentIds.Contains(studentId)) && c.Id != id)
                     .AnyAsync();
@@ -200,7 +195,6 @@ namespace Schoolproject.Services
                 }
             }
 
-            // Update the class entity with the new data
             classEntity.Name = classDto.Name;
             classEntity.TeacherIds = classDto.TeacherIds ?? classEntity.TeacherIds;
             classEntity.StudentIds = classDto.StudentIds ?? classEntity.StudentIds;
@@ -208,7 +202,6 @@ namespace Schoolproject.Services
 
             try
             {
-                // Save changes to the database
                 await _context.SaveChangesAsync();
             }
             catch (Exception ex)
@@ -216,7 +209,6 @@ namespace Schoolproject.Services
                 throw new InvalidOperationException("An error occurred while updating the class. Please try again later.", ex);
             }
 
-            // Return the updated class response
             return new ClassResponseDto
             {
                 Id = classEntity.Id,
@@ -228,52 +220,36 @@ namespace Schoolproject.Services
         }
         public async Task<bool> DeleteAsync(int id)
         {
-            // Step 1: Check if the class with the specified ID exists
             var classEntity = await _context.Classes.FindAsync(id);
 
             if (classEntity == null)
             {
-                // If the class does not exist, return false and indicate failure
-                return false; // Class not found, deletion failed
+                throw new KeyNotFoundException("Class with the provided ID not found.");
             }
 
-            // Step 2: Check if any students are still assigned to the class
             if (classEntity.StudentIds.Any())
             {
-                // Prevent deletion if students are assigned
-                return false;
+                throw new InvalidOperationException("Cannot delete class because it still has assigned students.");
             }
 
-            // Step 3: Check if any teachers are still assigned to the class
             if (classEntity.TeacherIds.Any())
             {
-                // Prevent deletion if teachers are assigned
-                return false;
+                throw new InvalidOperationException("Cannot delete class because it still has assigned teachers.");
             }
 
-            // Step 4: Optionally check if subjectIds exist in other classes
-            var otherClassWithSubject = await _context.Classes
+            bool otherClassWithSubject = await _context.Classes
                 .AnyAsync(c => c.SubjectIds.Any(s => classEntity.SubjectIds.Contains(s)) && c.Id != id);
 
             if (otherClassWithSubject)
             {
-                // Prevent deletion if subjects are assigned to other classes
-                return false;
+                throw new InvalidOperationException("Cannot delete class because its subjects are linked to other classes.");
             }
 
-            // Step 5: Delete the class
             _context.Classes.Remove(classEntity);
+            await _context.SaveChangesAsync();
 
-            try
-            {
-                await _context.SaveChangesAsync();
-                return true; // Successfully deleted
-            }
-            catch (Exception)
-            {
-                // Return false in case of any exception during deletion
-                return false;
-            }
+            return true;
         }
+
     }
 }

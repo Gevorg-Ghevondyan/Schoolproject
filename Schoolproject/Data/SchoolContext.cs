@@ -7,6 +7,7 @@ namespace Schoolproject.Data
         public SchoolContext(DbContextOptions<SchoolContext> options) : base(options)
         {
         }
+
         public DbSet<Student> Students { get; set; }
         public DbSet<Teacher> Teachers { get; set; }
         public DbSet<Subject> Subjects { get; set; }
@@ -24,13 +25,11 @@ namespace Schoolproject.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Class>()
-                .HasMany(c => c.Subjects)
-                .WithMany(s => s.Classes)
-                .UsingEntity<Dictionary<string, object>>(
-                    "ClassSubjects",
-                    j => j.HasOne<Subject>().WithMany().HasForeignKey("SubjectId"),
-                    j => j.HasOne<Class>().WithMany().HasForeignKey("ClassId"));
+            modelBuilder.Entity<Student>()
+                .HasOne(s => s.Class)
+                .WithMany(c => c.Students)
+                .HasForeignKey(s => s.ClassId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<Class>()
                 .HasMany(c => c.Teachers)
@@ -41,11 +40,11 @@ namespace Schoolproject.Data
                     j => j.HasOne<Class>().WithMany().HasForeignKey("ClassId"));
 
             modelBuilder.Entity<Class>()
-                .HasMany(c => c.Students)
+                .HasMany(c => c.Subjects)
                 .WithMany(s => s.Classes)
                 .UsingEntity<Dictionary<string, object>>(
-                    "ClassStudents",
-                    j => j.HasOne<Student>().WithMany().HasForeignKey("StudentId"),
+                    "ClassSubjects",
+                    j => j.HasOne<Subject>().WithMany().HasForeignKey("SubjectId"),
                     j => j.HasOne<Class>().WithMany().HasForeignKey("ClassId"));
         }
 
