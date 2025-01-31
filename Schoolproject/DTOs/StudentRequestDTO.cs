@@ -9,5 +9,5 @@ public class StudentRequestDTO
     [EmailAddress]
     public string Email { get; set; }
 
-    public int? ClassId { get; set; }
+    public int? ClassId { get; set; } = null;
 }

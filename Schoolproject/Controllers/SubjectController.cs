@@ -1,64 +1,79 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Schoolproject.DTOs;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace Schoolproject.Controllers
+[Route("api/[controller]")]
+[ApiController]
+public class SubjectController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class SubjectsController : ControllerBase
+    private readonly ISubjectService _subjectService;
+
+    public SubjectController(ISubjectService subjectService)
     {
-        private readonly ISubjectService _subjectService;
+        _subjectService = subjectService;
+    }
 
-        public SubjectsController(ISubjectService subjectService)
-        {
-            _subjectService = subjectService;
-        }
-
-        [HttpPost]
-        public async Task<ActionResult<SubjectResponseDto>> CreateSubject(SubjectRequestDTO subjectDto)
+    [HttpPost]
+    public async Task<IActionResult> CreateSubject([FromBody] SubjectRequestDTO subjectDto)
+    {
+        try
         {
             var subject = await _subjectService.CreateAsync(subjectDto);
             return CreatedAtAction(nameof(GetSubjectById), new { id = subject.Id }, subject);
         }
-
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<SubjectResponseDto>>> GetAllSubjects()
+        catch (ArgumentException ex)
         {
-            var subjects = await _subjectService.GetAllAsync();
-            return Ok(subjects);
+            return BadRequest(new { message = ex.Message });
         }
-
-        [HttpGet("{id}")]
-        public async Task<ActionResult<SubjectResponseDto>> GetSubjectById(int id)
+        catch (Exception ex)
         {
-            var subject = await _subjectService.GetByIdAsync(id);
-            if (subject == null)
-            {
-                return NotFound();
-            }
-            return Ok(subject);
+            return StatusCode(500, new { message = "An unexpected error occurred.", details = ex.Message });
         }
+    }
 
-        [HttpPut("{id}")]
-        public async Task<ActionResult<SubjectResponseDto>> UpdateSubject(int id, SubjectRequestDTO subjectDto)
+    [HttpGet]
+    public async Task<IActionResult> GetAllSubjects()
+    {
+        var subjects = await _subjectService.GetAllAsync();
+        return Ok(subjects);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetSubjectById(int id)
+    {
+        var subject = await _subjectService.GetByIdAsync(id);
+        if (subject == null)
+        {
+            return NotFound($"Subject with ID {id} not found.");
+        }
+        return Ok(subject);
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateSubject(int id, [FromBody] SubjectRequestDTO subjectDto)
+    {
+        try
         {
             var updatedSubject = await _subjectService.UpdateAsync(id, subjectDto);
             if (updatedSubject == null)
-            {
-                return NotFound();
-            }
+                return NotFound($"Subject with ID {id} not found.");
+
             return Ok(updatedSubject);
         }
-
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteSubject(int id)
+        catch (ArgumentException ex)
         {
-            var success = await _subjectService.DeleteAsync(id);
-            if (!success)
-            {
-                return NotFound();
-            }
-            return NoContent();
+            return BadRequest(ex.Message);
         }
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteSubject(int id)
+    {
+        var deleted = await _subjectService.DeleteAsync(id);
+        if (!deleted)
+            return NotFound($"Subject with ID {id} not found.");
+
+        return NoContent();
     }
 }

@@ -20,6 +20,10 @@ namespace Schoolproject.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateStudent([FromBody] StudentRequestDTO studentDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             try
             {
                 var student = await _studentService.CreateAsync(studentDto);
@@ -38,7 +42,6 @@ namespace Schoolproject.Controllers
                 return StatusCode(500, new { message = "An unexpected error occurred.", details = ex.Message });
             }
         }
-
         [HttpGet]
         public async Task<IActionResult> GetAllStudents()
         {
@@ -51,7 +54,6 @@ namespace Schoolproject.Controllers
 
             return Ok(students);
         }
-
         [HttpGet("{id}")]
         public async Task<IActionResult> GetStudentById(int id)
         {
@@ -74,7 +76,6 @@ namespace Schoolproject.Controllers
                 return StatusCode(500, new { message = "An unexpected error occurred.", details = ex.Message });
             }
         }
-
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateStudent(int id, [FromBody] StudentRequestDTO studentDto)
         {
@@ -119,7 +120,6 @@ namespace Schoolproject.Controllers
                 return StatusCode(500, new { message = "An unexpected error occurred.", details = ex.Message });
             }
         }
-
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStudent(int id)
         {

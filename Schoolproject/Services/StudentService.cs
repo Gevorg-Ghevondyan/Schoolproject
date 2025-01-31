@@ -23,10 +23,11 @@ namespace Schoolproject.Services
                 throw new ArgumentException("A student with this email already exists.");
             }
 
+            Student studentEntity;
+
             if (studentDto.ClassId.HasValue)
             {
                 var classEntity = await _context.Classes
-                    .Include(c => c.Students)
                     .FirstOrDefaultAsync(c => c.Id == studentDto.ClassId.Value);
 
                 if (classEntity == null)
@@ -34,28 +35,36 @@ namespace Schoolproject.Services
                     throw new KeyNotFoundException("The specified class does not exist.");
                 }
 
-                var studentEntity = new Student
+                studentEntity = new Student
                 {
                     Name = studentDto.Name,
                     Email = studentDto.Email,
-                    ClassId = studentDto.ClassId
+                    ClassId = studentDto.ClassId.Value
                 };
 
                 classEntity.Students.Add(studentEntity);
-
-                _context.Students.Add(studentEntity);
-                await _context.SaveChangesAsync();
-
-                return new StudentResponseDto
+            }
+            else
+            {
+                studentEntity = new Student
                 {
-                    Id = studentEntity.Id,
-                    Name = studentEntity.Name,
-                    Email = studentEntity.Email,
-                    ClassId = studentEntity.ClassId
+                    Name = studentDto.Name,
+                    Email = studentDto.Email,
+                    ClassId = null
                 };
             }
 
-            throw new ArgumentException("ClassId must be provided for student creation.");
+            _context.Students.Add(studentEntity);
+
+            await _context.SaveChangesAsync();
+
+            return new StudentResponseDto
+            {
+                Id = studentEntity.Id,
+                Name = studentEntity.Name,
+                Email = studentEntity.Email,
+                ClassId = studentEntity.ClassId
+            };
         }
 
         public async Task<StudentResponseDto> GetByIdAsync(int id)

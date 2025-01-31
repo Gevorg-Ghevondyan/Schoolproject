@@ -8,5 +8,4 @@
         public List<int> TeacherIds { get; set; }
         public List<int> StudentIds { get; set; }
     }
-
 }
