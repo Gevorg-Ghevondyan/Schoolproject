@@ -1,4 +1,5 @@
 ﻿using Schoolproject.DTOs;
+
 public interface IStudentService
 {
     Task<StudentResponseDto> CreateAsync(StudentRequestDTO studentDto);
